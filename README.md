@@ -11,3 +11,33 @@
 - **Database:** Oracle / MySQL (Relational Modeling)
 - **API:** Kakao Login API, Naver Login API
 - **ETC:** HTML5/CSS3, GitHub
+
+🏗️ 1. System Architecture
+면접관님을 위한 시스템 구조도입니다. 클라이언트의 요청이 어떻게 서버를 거쳐 DB에 도달하고, 다시 UI로 렌더링되는지를 보여줍니다.
+graph TD
+    subgraph Client_Layer
+        Web[Web Browser]
+        UI[JSP / HTML5 / CSS3]
+    end
+
+    subgraph Logic_Layer
+        Controller[Controller: Servlet/Spring]
+        Service[Service Logic: Java Beans]
+        Auth[OAuth API: Kakao/Naver]
+    end
+
+    subgraph Data_Layer
+        MyBatis[Persistence: MyBatis]
+        DB[(Oracle / MySQL)]
+    end
+
+    Web --> UI
+    UI -- AJAX/Request --> Controller
+    Controller --> Auth
+    Controller --> Service
+    Service --> MyBatis
+    MyBatis --> DB
+    DB --> MyBatis
+    MyBatis --> Service
+    Service --> Controller
+    Controller -- Response --> UI
