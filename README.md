@@ -12,32 +12,20 @@
 - **API:** Kakao Login API, Naver Login API
 - **ETC:** HTML5/CSS3, GitHub
 
-🏗️ 1. System Architecture
-면접관님을 위한 시스템 구조도입니다. 클라이언트의 요청이 어떻게 서버를 거쳐 DB에 도달하고, 다시 UI로 렌더링되는지를 보여줍니다.
-graph TD
-    subgraph Client_Layer
-        Web[Web Browser]
-        UI[JSP / HTML5 / CSS3]
-    end
+🏗️ 1. Integrated System Architecture
 
-    subgraph Logic_Layer
-        Controller[Controller: Servlet/Spring]
-        Service[Service Logic: Java Beans]
-        Auth[OAuth API: Kakao/Naver]
-    end
+사용자의 요청이 View에서 시작해 Java의 인메모리 데이터 저장소(ArrayList)를 거쳐 다시 화면으로 돌아오는 메커니즘입니다.
 
-    subgraph Data_Layer
-        MyBatis[Persistence: MyBatis]
-        DB[(Oracle / MySQL)]
-    end
+sequenceDiagram
+    participant User as 👤 User (JSP)
+    participant Controller as ⚙️ Controller (Java)
+    participant DAO as 🗳️ DAO (Memory)
+    participant List as 📦 ArrayList / Vector
 
-    Web --> UI
-    UI -- AJAX/Request --> Controller
-    Controller --> Auth
-    Controller --> Service
-    Service --> MyBatis
-    MyBatis --> DB
-    DB --> MyBatis
-    MyBatis --> Service
-    Service --> Controller
-    Controller -- Response --> UI
+    User->>Controller: HTTP Request (예: 영화 상세 조회)
+    Controller->>DAO: 데이터 조회 메서드 호출 (getMovieList)
+    DAO->>List: 컬렉션 내 객체 탐색 및 필터링
+    List-->>DAO: VO 객체 반환
+    DAO-->>Controller: ArrayList / VO 전달
+    Controller->>User: RequestDispatcher / JSP 데이터 바인딩
+    Note over User: JSTL/EL을 이용한 동적 렌더링
