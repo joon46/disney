@@ -12,55 +12,40 @@
 - **API:** Kakao Login API, Naver Login API
 - **ETC:** HTML5/CSS3, GitHub
 
-🏗️ 1. Integrated System Architecture
+## Java-JSP 파일 연동 다이어그램
+사용자의 요청이 들어왔을 때, 어떤 Java 파일을 거쳐 어떤 JSP로 데이터가 전달되는지에 대한 구조도입니다.
+graph LR
+    subgraph "View Layer (webapp/WEB-INF)"
+        JSP_MAIN[main.jsp]
+        JSP_DET[movieDetail.jsp]
+        JSP_ADM[admin.jsp]
+    end
 
-사용자의 요청이 View에서 시작해 Java의 인메모리 데이터 저장소(ArrayList)를 거쳐 다시 화면으로 돌아오는 메커니즘입니다.
+    subgraph "Controller Layer (src/java/controller)"
+        CON_MOV[MovieController.java]
+        CON_REPLY[ReplyController.java]
+        CON_ADM[AdminController.java]
+    end
 
-sequenceDiagram
-    participant User as 👤 User (JSP)
-    participant Controller as ⚙️ Controller (Java)
-    participant DAO as 🗳️ DAO (Memory)
-    participant List as 📦 ArrayList / Vector
+    subgraph "Model Layer (src/java/dao & vo)"
+        DAO_MOV[MovieDAO.java]
+        DAO_ACT[ActorDAO.java]
+        VO_MOV[MovieVO.java]
+    end
 
-    User->>Controller: HTTP Request (예: 영화 상세 조회)
-    Controller->>DAO: 데이터 조회 메서드 호출 (getMovieList)
-    DAO->>List: 컬렉션 내 객체 탐색 및 필터링
-    List-->>DAO: VO 객체 반환
-    DAO-->>Controller: ArrayList / VO 전달
+    %% 관계 설정
+    JSP_MAIN -- "Request" --> CON_MOV
+    CON_MOV -- "getMovieList()" --> DAO_MOV
+    DAO_MOV -- "ArrayList<VO>" --> CON_MOV
+    CON_MOV -- "setAttribute & Forward" --> JSP_MAIN
 
-2. 기능별 통합 가이드 (Java & JSP Mapping)
+    JSP_DET -- "AJAX Request" --> CON_REPLY
+    CON_REPLY -- "insertReply()" --> DAO_MOV
+    DAO_MOV -- "Response Data" --> CON_REPLY
+    CON_REPLY -- "JSON/Text" --> JSP_DET
 
-면접관님, 특정 기능을 구현하기 위해 사용된 파일 간의 연관 관계입니다. DB 대신 자바 객체 내에 보관된 데이터를 처리하는 로직을 확인할 수 있습니다.
-
-주요 기능
-View (JSP / webapp)
-Logic (Java / src)
-핵심 로직 설명
-메인 대시보드
-main.jsp
-MovieController, MovieDAO
-ArrayList에 담긴 영화 객체들을 루프를 통해 JSTL로 출력
-상세 정보 & 댓글
-movieDetail.jsp
-ReplyController, ScoreVO
-사용자의 입력값을 자바 객체 리스트에 실시간 추가 및 관리
-사용자 인증
-login.jsp, join.jsp
-UserController, UserVO
-UserList 내 객체 비교를 통한 회원가입/로그인 유효성 검증
-마이페이지
-myPage.jsp
-UserSelectDAO
-선택된 유저의 인덱스를 기준으로 리스트 필터링 수행
-인물 정보
-actor.jsp
-ActorVO, ActorDAO
-배우 정보를 담은 컬렉션을 영화 정보와 매칭하여 노출
-관리자 모드
-admin.jsp
-AdminController
-add(), remove() 등 컬렉션 메서드를 활용한 콘텐츠 CRUD
-
+    JSP_ADM -- "CRUD Request" --> CON_ADM
+    CON_ADM -- "update/delete" --> DAO_MOV
 
 
 🚀 3. 핵심 기술 포인트 (Deep Dive)
