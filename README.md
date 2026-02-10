@@ -15,6 +15,7 @@
 ## Java-JSP 파일 연동 다이어그램
 사용자의 요청이 들어왔을 때, 어떤 Java 파일을 거쳐 어떤 JSP로 데이터가 전달되는지에 대한 구조도입니다.
 graph LR
+
     subgraph "View Layer (webapp/WEB-INF)"
         JSP_MAIN[main.jsp]
         JSP_DET[movieDetail.jsp]
