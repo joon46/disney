@@ -93,7 +93,8 @@ sequenceDiagram
     DAO->>DB: SELECT COUNT(*)
     DB-->>Controller: 결과 반환
     Controller-->>AJAX: JSON 응답 (사용가능 여부)
-    AJAX->>WC: 화면에 실시간 메시지 출력
+    - AJAX->>WC: 사용 가능 시 회원가입 성공 페이지로 이동  
+    - 화면에 실시간 메시지 출력
     
     Note over JSP, DB: 모든 검증 완료 후
     JSP->>Controller: 회원가입 요청 (POST)
