@@ -45,30 +45,40 @@ WEB-INF/views/user/: 회원 관련 화면
 
 WEB-INF/views/admin/: 관리자 전용 영화 등록 및 회원 관리 페이지.
 
-## 서비스 프로세스 흐름도
-graph TD
-    A[메인 페이지 접속(beforeLogin.jsp/afterLogin.jsp)] --> B{로그인 여부}
-    B -- No --> C[로그인/회원가입 페이지(login.jsp/signUp.jsp)]
-    B -- Yes --> D[영화 상세 페이지 탐색]
-    
-    C --> C1[일반 회원가입]
-    C --> C2[네이버/카카오 소셜 로그인]
-    
-    D --> E[영화 시청 및 상세 정보]
-    E --> F{사용자 액션}
-    
-    F --> G[별점 및 댓글 작성]
-    F --> H[영화 찜하기]
-    F --> I[조회수/랭킹 증가]
-    
-    H --> J[마이페이지 찜 목록 확인]
-    G --> K[영화 평가 데이터 반영]
-    
-    subgraph Admin_Section
-    L[관리자 페이지] --> M[영화 데이터 CRUD]
-    L --> N[사용자 계정 관리]
-    end
+## 영화 인기 랭킹 & 조회수 관리 프로세스 흐름도
 
+
+graph LR
+
+    A[afterLogin.jsp / beforeLogin: 영화 클릭] --> B[MovieController: movie.do]
+    B --> C{MovieDAO: movieHitUpDate}
+    C --> D[(DB: MovieTable - MovieHit +1)]
+    D --> E[MovieDAO: movieList]
+    E --> F[main.jsp: 실시간 인기 순위 반영]
+
+
+## 회원가입 및 데이터 무결성 검증 프로세스
+
+sequenceDiagram
+
+    participant JSP as register.jsp (View)
+    participant AJAX as jQuery/AJAX
+    participant Controller as UserController
+    participant DAO as UserDAO
+    participant DB as Database
+
+    JSP->>AJAX: ID/닉네임 입력 이벤트
+    AJAX->>Controller: 중복 체크 요청 (.do)
+    Controller->>DAO: findUserById() / findUserByNick()
+    DAO->>DB: SELECT COUNT(*)
+    DB-->>Controller: 결과 반환
+    Controller-->>AJAX: JSON 응답 (사용가능 여부)
+    AJAX->>JSP: 화면에 실시간 메시지 출력
+    
+    Note over JSP, DB: 모든 검증 완료 후
+    JSP->>Controller: 회원가입 요청 (POST)
+    Controller->>DAO: userInsert(vo)
+    DAO->>DB: INSERT INTO UserTable
 
 
 🚀 3. 핵심 기술 포인트 (Deep Dive)
