@@ -12,41 +12,63 @@
 - **API:** Kakao Login API, Naver Login API
 - **ETC:** HTML5/CSS3, GitHub
 
-## Java-JSP 파일 연동 다이어그램
-사용자의 요청이 들어왔을 때, 어떤 Java 파일을 거쳐 어떤 JSP로 데이터가 전달되는지에 대한 구조도입니다.
-graph LR
+## 각 파일 설명
+# Java (Back-end: MVC Pattern)
+com.disney.controller: 사용자 요청(.do)을 받아 적절한 서비스로 연결
 
-    subgraph "View Layer (webapp/WEB-INF)"
-        JSP_MAIN[main.jsp]
-        JSP_DET[movieDetail.jsp]
-        JSP_ADM[admin.jsp]
+- MovieController.java: 영화 리스트 출력, 상세 정보, 랭킹 및 조회수 로직 처리.
+
+- UserController.java: 일반/소셜 로그인, 회원가입, 중복 체크(AJAX) 관리.
+
+- UserSelectController.java: 찜하기 추가 및 삭제 요청 처리.
+
+com.disney.dao: DB에 직접 접근하여 SQL 쿼리 실행
+
+- MovieDAO.java: 영화 CRUD 및 랭킹(MovieHit) 업데이트 로직.
+
+- UserDAO.java: 유저 정보 관리 및 중복 데이터 확인 쿼리.
+
+com.disney.vo: DB 테이블과 매핑되는 Value Object (데이터 바구니).
+
+# Web Content (Front-end: JSP)
+WEB-INF/views/main.jsp: 메인 페이지. 영화 슬라이더 및 실시간 랭킹 순위 노출.
+
+WEB-INF/views/movie/: 영화 관련 화면
+
+- movie_detail.jsp: 영화 상세 정보, 별점 부여 및 댓글 작성 UI.
+
+WEB-INF/views/user/: 회원 관련 화면
+
+- login.jsp / register.jsp: 로그인 및 회원가입(유효성 검사 포함).
+
+- mypage.jsp: 개인정보 수정 및 찜 목록(UserSelect) 관리.
+
+WEB-INF/views/admin/: 관리자 전용 영화 등록 및 회원 관리 페이지.
+
+## 서비스 프로세스 흐름도
+graph TD
+    A[메인 페이지 접속(beforeLogin.jsp/afterLogin.jsp)] --> B{로그인 여부}
+    B -- No --> C[로그인/회원가입 페이지(login.jsp/signUp.jsp)]
+    B -- Yes --> D[영화 상세 페이지 탐색]
+    
+    C --> C1[일반 회원가입]
+    C --> C2[네이버/카카오 소셜 로그인]
+    
+    D --> E[영화 시청 및 상세 정보]
+    E --> F{사용자 액션}
+    
+    F --> G[별점 및 댓글 작성]
+    F --> H[영화 찜하기]
+    F --> I[조회수/랭킹 증가]
+    
+    H --> J[마이페이지 찜 목록 확인]
+    G --> K[영화 평가 데이터 반영]
+    
+    subgraph Admin_Section
+    L[관리자 페이지] --> M[영화 데이터 CRUD]
+    L --> N[사용자 계정 관리]
     end
 
-    subgraph "Controller Layer (src/java/controller)"
-        CON_MOV[MovieController.java]
-        CON_REPLY[ReplyController.java]
-        CON_ADM[AdminController.java]
-    end
-
-    subgraph "Model Layer (src/java/dao & vo)"
-        DAO_MOV[MovieDAO.java]
-        DAO_ACT[ActorDAO.java]
-        VO_MOV[MovieVO.java]
-    end
-
-    %% 관계 설정
-    JSP_MAIN -- "Request" --> CON_MOV
-    CON_MOV -- "getMovieList()" --> DAO_MOV
-    DAO_MOV -- "ArrayList<VO>" --> CON_MOV
-    CON_MOV -- "setAttribute & Forward" --> JSP_MAIN
-
-    JSP_DET -- "AJAX Request" --> CON_REPLY
-    CON_REPLY -- "insertReply()" --> DAO_MOV
-    DAO_MOV -- "Response Data" --> CON_REPLY
-    CON_REPLY -- "JSON/Text" --> JSP_DET
-
-    JSP_ADM -- "CRUD Request" --> CON_ADM
-    CON_ADM -- "update/delete" --> DAO_MOV
 
 
 🚀 3. 핵심 기술 포인트 (Deep Dive)
