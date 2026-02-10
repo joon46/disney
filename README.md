@@ -50,22 +50,42 @@ WEB-INF/views/admin/: 관리자 전용 영화 등록 및 회원 관리 페이지
 
 graph LR
 
-    A[afterLogin.jsp / beforeLogin: 영화 클릭] --> B[MovieController: movie.do]
-    B --> C{MovieDAO: movieHitUpDate}
-    C --> D[(DB: MovieTable - MovieHit +1)]
-    D --> E[MovieDAO: movieList]
-    E --> F[main.jsp: 실시간 인기 순위 반영]
+    subgraph View_JSP
+        A[beforeLogin.jsp / afterLogin.jsp] -- "1. 영화 클릭 (movie.do?movieIdx=X)" --> B[movie.jsp] (영화정보)
+        F[afterLogin.jsp / beforeLogin.jsp] -- "4. 데이터 갱신된 메인 출력" --> G((사용자 확인))
+    end
+
+    subgraph Controller_Java
+        C[MovieController] -- "2. @RequestMapping('movie.do')" --> D[movieAbout 메서드]
+        D -- "조회수 증가 호출" --> E[movieHitUpDate 실행]
+    end
+
+    subgraph Model_MyBatis
+        E -- "UPDATE MovieTable SET MovieHit++" --> DB[(Oracle DB)]
+        D -- "SELECT * FROM MovieTable" --> DB
+    end
+
+    B -- "3. 페이지 로드 시 최신 랭킹 리스트 요청" --> C
+    C -- "movieList 데이터 반환" --> F
+
+- **사용자 요청 처리**: `@RequestMapping`을 통해 `.do` 기반의 가상 경로를 설정, 비즈니스 로직과 뷰(JSP)를 완전히 분리했습니다.
+- **조회수 자동 집계**: 사용자가 영화 상세 정보를 조회할 때마다 `MovieDAO.movieHitUpDate`가 실행되어 실시간 트래픽을 데이터화합니다.
+- **동적 화면 구성**: 
+  - `beforeLogin.jsp`: 비로그인 사용자용 메인 (로그인 유도)
+  - `afterLogin.jsp`: 로그인 사용자 전용 메인 (개인화된 메뉴 및 서비스 노출)
+- **Persistence**: MyBatis의 `sqlSession`을 활용하여 SQL 쿼리를 DAO 외부(XML)에서 관리, 유지보수성을 극대화했습니다.
 
 
 ## 회원가입 및 데이터 무결성 검증 프로세스
 
 sequenceDiagram
 
-    participant JSP as register.jsp (View)
+    participant JSP as signUp.jsp (View)
     participant AJAX as jQuery/AJAX
     participant Controller as UserController
     participant DAO as UserDAO
     participant DB as Database
+    participant WC as Welcome.jsp (View)
 
     JSP->>AJAX: ID/닉네임 입력 이벤트
     AJAX->>Controller: 중복 체크 요청 (.do)
@@ -73,7 +93,7 @@ sequenceDiagram
     DAO->>DB: SELECT COUNT(*)
     DB-->>Controller: 결과 반환
     Controller-->>AJAX: JSON 응답 (사용가능 여부)
-    AJAX->>JSP: 화면에 실시간 메시지 출력
+    AJAX->>WC: 화면에 실시간 메시지 출력
     
     Note over JSP, DB: 모든 검증 완료 후
     JSP->>Controller: 회원가입 요청 (POST)
