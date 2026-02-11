@@ -12,6 +12,9 @@
 - **API:** Kakao Login API, Naver Login API
 - **ETC:** HTML5/CSS3, GitHub
 
+## Security
+- SQL Injection 방지: MyBatis 사용 시 모든 파라미터 바인딩을 ${}(Literal) 대신 #{}(PreparedStatement) 방식을 적용하여 SQL 인젝션 공격에 대비한 안정적인 데이터 조작 로직을 구현하였습니다.
+
 ## 각 파일 설명
 # Java (Back-end: MVC Pattern)
 com.disney.controller: 사용자 요청(.do)을 받아 적절한 서비스로 연결
